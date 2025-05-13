@@ -27,7 +27,7 @@ Secure login and signup pages. Role-based access control ensures restricted func
 
 1️⃣ **Clone the Repository**  
 ```bash
-git clone git@github.com:YourUsername/Scheduling-Algorithm-Project.git
+git clone git@github.com:Aditi7Singh/Scheduling-Algorithm-Project.git
 ```
 
 2️⃣ **Set Up Local Server**  
