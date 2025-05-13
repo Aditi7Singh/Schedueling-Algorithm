@@ -1,4 +1,4 @@
-# Scheduling Algorithm Project
+# Scheduling Algorithm 
 
 A web-based platform designed to facilitate the management and execution of scheduling algorithms, enabling users to visualize and analyze various scheduling techniques.
 
