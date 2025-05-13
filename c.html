@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduling Algorithms</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-weight: bold;
+            text-decoration: underline;
+            color: #003366;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 10px;
+        }
+
+        .names {
+            margin-top: 20px;
+            font-style: italic;
+            border-top: 1px solid #003366;
+            padding-top: 10px;
+        }
+
+        .names p {
+            margin: 0 10px;
+            display: inline-block;
+        }
+
+        .page-input {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page-input label {
+            margin-right: 10px;
+        }
+
+        .page-input input[type="text"] {
+            padding: 5px;
+            width: 200px;
+        }
+
+        .simulation-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .simulation-buttons button {
+            padding: 15px 30px;
+            cursor: pointer;
+            background-color: #003366;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .simulation-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        .memory {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .memory-slot {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            background-color: #ffffff;
+        }
+
+        .reset-button {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .reset-button button {
+            padding: 15px 30px;
+            cursor: pointer;
+            background-color: #003366;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .reset-button button:hover {
+            background-color: #0056b3;
+        }
+
+        .steps {
+            margin-bottom: 20px;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #003366;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scheduling Algorithms</h1>
+        <div class="page-input">
+            <label for="pageInput">Enter pages (comma-separated): </label>
+            <input type="text" id="pageInput">
+        </div>
+        <div class="simulation-buttons">
+            <button onclick="startSimulation('FIFO')">Start FIFO Simulation</button>
+            <button onclick="startSimulation('LIFO')">Start LIFO Simulation</button>
+            <button onclick="startSimulation('LRU')">Start LRU Simulation</button>
+        </div>
+        <div class="memory" id="memory">
+            <!-- Memory slots will be dynamically added here -->
+        </div>
+        <div class="simulation-buttons">
+            <button onclick="deallocateMemory()">Deallocate Memory</button>
+        </div>
+        <div class="reset-button" id="resetButton" style="display: none;">
+            <button onclick="resetSimulation()">Reset Simulation</button>
+        </div>
+        <div class="steps" id="steps">
+            <!-- Steps will be dynamically added here -->
+        </div>
+        <div class="names">
+            <p>Aditi Singh</p>
+            <p>Ananya Kishore Bharani</p>
+            <p>Anjali Heda</p>
+        </div>
+    </div>
+
+    <script>
+        const blockSize = 40; // size of each memory block
+        const numSlots = 6; // number of memory slots
+        const delayMultiplier = 1500; // Adjust this value to control the speed of simulation
+
+        class PageReplacementAlgorithm {
+            constructor() {
+                this.memory = new Array(numSlots).fill(null); // initialize memory slots with null
+                this.pointer = 0; // pointer to keep track of the oldest/youngest page
+                this.memoryElement = document.getElementById('memory'); // reference to memory display
+                this.deallocationQueue = []; // Queue to track deallocation order (used in FIFO)
+            }
+
+            displayMemory() {
+                this.memoryElement.innerHTML = ''; // clear previous display
+                for (let i = 0; i < numSlots; i++) {
+                    const slot = document.createElement('div');
+                    slot.classList.add('memory-slot');
+                    if (this.memory[i] !== null) {
+                        slot.textContent = this.memory[i]; // display the page number
+                    }
+                    this.memoryElement.appendChild(slot);
+                }
+            }
+
+            moveBlocks() {
+                for (let i = 0; i < blockSize; i++) {
+                    setTimeout(() => {
+                        this.pointer = (this.pointer + 1) % numSlots; // move the pointer
+                        this.displayMemory(); // update memory display
+                    }, i * delayMultiplier); // adjust the speed of movement by changing the delay
+                }
+            }
+
+            deallocatePage() {
+                // This method will be overridden by each specific algorithm class
+            }
+        }
+
+        class FIFO extends PageReplacementAlgorithm {
+            constructor() {
+                super();
+            }
+
+            simulatePageReplacement(pages) {
+                for (let i = 0; i < pages.length; i++) {
+                    setTimeout(() => {
+                        const page = pages[i];
+                        const pageIndex = this.memory.indexOf(null); // find index of the empty memory block
+
+                        if (pageIndex !== -1) {
+                            // Empty block found, allocate page
+                            this.memory[pageIndex] = page;
+                            this.deallocationQueue.push(pageIndex); // Add the allocated page index to the deallocation queue
+                        } else {
+                            // No empty block, use the page replacement algorithm
+                            // In this example, we'll just replace the oldest page
+                            const oldestPageIndex = this.deallocationQueue.shift(); // Get the oldest allocated page index
+                           
+                            this.memory[oldestPageIndex] = page; // Replace the oldest page with the new page
+                            this.deallocationQueue.push(oldestPageIndex
+                            ); // Push the replaced page index to the deallocation queue
+                        }
+
+                        this.displayMemory(); // display the current state of memory
+                    }, i * delayMultiplier); // adjust the speed of simulation by changing the delay
+                }
+            }
+
+            deallocatePage() {
+                // Deallocation based on FIFO
+                const oldestPageIndex = this.deallocationQueue.shift(); // Get the index of the oldest allocated page
+                this.memory[oldestPageIndex] = null; // Free up the memory slot
+            }
+        }
+
+        class LIFO extends PageReplacementAlgorithm {
+            constructor() {
+                super();
+            }
+
+            simulatePageReplacement(pages) {
+                for (let i = 0; i < pages.length; i++) {
+                    setTimeout(() => {
+                        const page = pages[i];
+                        const pageIndex = this.memory.indexOf(null); // find index of the empty memory block
+
+                        if (pageIndex !== -1) {
+                            // Empty block found, allocate page to it
+                            this.memory[pageIndex] = page;
+                            this.deallocationQueue.push(pageIndex); // Add the allocated page index to the deallocation queue
+                        } else {
+                            // No empty block, use the page replacement algorithm
+                            // In this example, we'll just replace the newest page
+                            const newestPageIndex = this.deallocationQueue.pop(); // Get the newest allocated page index
+                            this.memory[newestPageIndex] = page; // Replace the newest page with the new page
+                            this.deallocationQueue.unshift(newestPageIndex); // Push the replaced page index to the beginning of the deallocation queue
+                        }
+
+                        this.displayMemory(); // display the current state of memory
+                    }, i * delayMultiplier); // adjust the speed of simulation by changing the delay
+                }
+            }
+
+            deallocatePage() {
+                // Deallocation based on LIFO
+                const newestPageIndex = this.deallocationQueue.pop(); // Get the index of the newest allocated page
+                this.memory[newestPageIndex] = null; // Free up the memory slot
+            }
+        }
+
+        class LRU extends PageReplacementAlgorithm {
+            constructor() {
+                super();
+            }
+
+            simulatePageReplacement(pages) {
+                for (let i = 0; i < pages.length; i++) {
+                    setTimeout(() => {
+                        const page = pages[i];
+                        const pageIndex = this.memory.indexOf(null); // find index of the empty memory block
+
+                        if (pageIndex !== -1) {
+                            // Empty block found, allocate page to it
+                            this.memory[pageIndex] = page;
+                            this.deallocationQueue.push(pageIndex); // Add the allocated page index to the deallocation queue
+                        } else {
+                            // No empty block, use the page replacement algorithm
+                            // In this example, we'll just replace the least recently used page
+                            const leastRecentlyUsedIndex = this.deallocationQueue.shift(); // Get the least recently used page index
+                            this.memory[leastRecentlyUsedIndex] = page; // Replace the least recently used page with the new page
+                            this.deallocationQueue.push(leastRecentlyUsedIndex); // Push the replaced page index to the deallocation queue
+                        }
+
+                        this.displayMemory(); // display the current state of memory
+                    }, i * delayMultiplier); // adjust the speed of simulation by changing the delay
+                }
+            }
+
+            deallocatePage() {
+                // Deallocation based on LRU
+                const leastRecentlyUsedIndex = this.deallocationQueue.shift(); // Get the index of the least recently used page
+                this.memory[leastRecentlyUsedIndex] = null; // Free up the memory slot
+            }
+        }
+
+        let pageReplacementAlgorithm;
+        function startSimulation(algorithm) {
+            const pageInput = document.getElementById('pageInput').value.trim();
+            const pages = pageInput.split(',').map(page => parseInt(page.trim()));
+
+            let description;
+            if (algorithm === 'FIFO') {
+                pageReplacementAlgorithm = new FIFO();
+                description = "FIFO (First-In-First-Out) is a page replacement algorithm that replaces the oldest page in memory.";
+            } else if (algorithm === 'LIFO') {
+                pageReplacementAlgorithm = new LIFO();
+                description = "LIFO (Last-In-First-Out) is a page replacement algorithm that replaces the newest page in memory.";
+            } else if (algorithm === 'LRU') {
+                pageReplacementAlgorithm = new LRU();
+                description = "LRU (Least Recently Used) is a page replacement algorithm that replaces the least recently used page in memory.";
+            }
+
+            const stepsElement = document.getElementById('steps');
+            stepsElement.innerHTML = `<strong>Description:</strong> ${description}`;
+
+            pageReplacementAlgorithm.moveBlocks(); // Move blocks initially
+            pageReplacementAlgorithm.simulatePageReplacement(pages);
+            document.getElementById('resetButton').style.display = 'block';
+        }
+
+        function deallocateMemory() {
+            pageReplacementAlgorithm.deallocatePage(); // Perform deallocation based on the selected algorithm
+            pageReplacementAlgorithm.displayMemory(); // Display the updated memory state after deallocation
+        }
+
+        function resetSimulation() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+    
+                    
+
+
+                            
+
